@@ -66,17 +66,17 @@ class auth_plugin_openid extends auth_plugin_base {
             set_config('openid_privacy_url', '', 'auth/openid');
             $this->config->openid_privacy_url='';
         }
-        
+
         if (!isset($this->config->openid_non_whitelisted_status)) {
             set_config('openid_non_whitelisted_status', 0, 'auth/openid');
             $this->config->openid_non_whitelisted_status=0;
         }
-        
+
         if (!isset($this->config->auth_openid_allow_account_change)) {
             set_config('auth_openid_allow_account_change', 'false', 'auth/openid');
             $this->config->auth_openid_allow_account_change='false'; // TBD: was true
         }
-        
+
         if (!isset($this->config->auth_openid_allow_multiple)) {
             set_config('auth_openid_allow_multiple', 'true', 'auth/openid');
             $this->config->auth_openid_allow_multiple='true';
@@ -127,7 +127,7 @@ class auth_plugin_openid extends auth_plugin_base {
             define('OPENID_USE_IDENTIFIER_SELECT', 'false');
         }
     }
-    
+
     /**
      * Returns true if this authentication plugin can change the users'
      * password.
@@ -269,7 +269,7 @@ class auth_plugin_openid extends auth_plugin_base {
     function process_config($config) {
         global $DB;
         $page = optional_param('page', '', PARAM_ALPHA);
-        
+
         if ($page == 'users') {
             $vars = array(
                 'auth_openid_allow_account_change',
@@ -293,41 +293,41 @@ class auth_plugin_openid extends auth_plugin_base {
         } elseif ($page == 'servers') {
             $vars = array();
             $add = optional_param('add_server', null, PARAM_RAW);
-            
+
             if ($add != null) {
-                $record = new object();
+                $record = new StdClass();
                 $record->server = required_param('openid_add_server', PARAM_RAW);
                 $record->listtype = optional_param('openid_add_listtype', 0, PARAM_INT);
-                
+
                 if ($record->listtype != OPENID_WHITELIST && $record->listtype != OPENID_BLACKLIST) {
                     $record->listtype = OPENID_GREYLIST;
                 }
-                
+
                 if (!empty($record->server) && !$DB->record_exists('openid_servers', array('server' => $record->server))) {
                     $DB->insert_record('openid_servers', $record);
                 }
             } else {
                 $servers = optional_param_array('servers', array(), PARAM_RAW);
-                
+
                 foreach ($servers as $id=>$val) {
                     $id = intval($id);
                     $val = intval($val);
-                    
+
                     if ($id < 1) {
                         continue;
                     }
-                    
+
                     // If we encounter a 'delete' request
-                    if ($val < 0) { 
+                    if ($val < 0) {
                         $DB->delete_records('openid_servers', array('id' => $id));
                         continue;
                     }
-                    
+
                     // Otherwise, force a valid value (default 'GREYLIST')
                     if ($val != OPENID_WHITELIST && $val != OPENID_BLACKLIST) {
                         $val = OPENID_GREYLIST;
                     }
-                    
+
                     // And update record
                     $record = new stdClass;
                     $record->id = $id;
@@ -336,12 +336,12 @@ class auth_plugin_openid extends auth_plugin_base {
                 }
             }
         }
-        
+
         foreach ($vars as $var) {
             set_config($var, isset($config->$var) ? $config->$var : '', 'auth/openid');
             $this->config->$var = isset($config->$var) ? $config->$var : '';
         }
-        
+
         return false;
     }
 
@@ -398,7 +398,7 @@ class auth_plugin_openid extends auth_plugin_base {
         if (empty($CFG->alternateloginurl)) {
             $CFG->alternateloginurl = $CFG->wwwroot.'/auth/openid/login.php';
         }
-        
+
         // No response received, form submitted OpenID URL or GoogleApps domain is set and "OpenID authentication only" option is set.
         if ($mode == null && ($openid_url != null || (!empty($google_apps_domain) && !empty($this->config->auth_openid_limit_login)))
             && ($username == null && $password == null)) {
@@ -407,7 +407,7 @@ class auth_plugin_openid extends auth_plugin_base {
         } elseif ($mode != null) {
             // If openid.mode is set then we'll assume this is a response
             $resp = $this->process_response();
-            
+
             if ($resp !== false) {
                 global $SESSION;
                 if (!empty($this->config->auth_openid_clear_wantsurl) &&
@@ -417,7 +417,7 @@ class auth_plugin_openid extends auth_plugin_base {
 
                 $url = $resp->identity_url;
                 $server = $resp->endpoint->server_url;
-                
+
                 if (!openid_server_allowed($server, $this->config)) {
                     $sparam = new stdClass;
                     $sparam->url = $server;
@@ -429,14 +429,14 @@ class auth_plugin_openid extends auth_plugin_base {
                     // Get the user associated with the OpenID
                     $userid = openid_urls_table(OPENID_URLS_GET, $url, 'userid');
                     $user = get_complete_user_data('id', $userid);
-                    
+
                     // If the user isn't found then there's a database
                     // discrepancy.  We delete this entry and create a new user
                     if (!$user) {
                         openid_urls_table(OPENID_URLS_DELETE, $url);
                         $user = $this->_open_account($resp);
                     }
-                    
+
                     // Otherwise, the user is found and we call the optional
                     // on_openid_login function
                     elseif (function_exists('on_openid_login')) {
@@ -456,7 +456,7 @@ class auth_plugin_openid extends auth_plugin_base {
             }
         }
     }
-    
+
     /**
      * Initiate an OpenID request
      *
@@ -636,7 +636,7 @@ class auth_plugin_openid extends auth_plugin_base {
             }
         }
     }
-    
+
     /**
      * Process an OpenID response
      *
@@ -691,7 +691,7 @@ class auth_plugin_openid extends auth_plugin_base {
 
         return false;
     }
-    
+
     /**
      * Open user account using SREG & AX data if available
      * If no matching user found and create flag is true, creates new user account

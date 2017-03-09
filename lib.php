@@ -61,7 +61,7 @@ if (!function_exists('fnmatch')) {
  * @return boolean
  */
 function openid_server_is_listed($server, $listtype) {
-    global $DB; 
+    global $DB;
     $servers = $DB->get_records('openid_servers', array('listtype' => $listtype));
     if ($servers) {
         foreach ($servers as $op) {
@@ -168,11 +168,11 @@ function openid_server_requires_confirm($server, $config = null)
  */
 function openid_parse_full_name($fullname) {
     $name = array('first'=>'','last'=>'');
-    
+
     if (empty($fullname)) {
         return $name;
     }
-    
+
     // If fullname doesn't contain at least 1 space, let's take a lucky
     // guess that it's a firstname.
     if (strpos($fullname, ' ') === false) {
@@ -182,7 +182,7 @@ function openid_parse_full_name($fullname) {
         $name['first'] = $parts[0];
         $name['last'] = $parts[1];
     }
-    
+
     return $name;
 }
 
@@ -240,7 +240,7 @@ function openid_send_confirmation_email($user) {
     $site = get_site();
     $from = get_admin();
 
-    $data = new object();
+    $data = new StdClass();
     $data->firstname = fullname($user);
     $data->sitename = format_string($site->fullname);
     $data->admin = fullname($from) .' ('. $from->email .')';
@@ -274,7 +274,7 @@ function openid_send_fallback_email($user, $openid_url) {
     $site = get_site();
     $from = get_admin();
 
-    $data = new object();
+    $data = new StdClass();
     $data->firstname = fullname($user);
     $data->sitename = format_string($site->fullname);
     $data->admin = fullname($from) .' ('. $from->email .')';
@@ -321,28 +321,28 @@ function openid_change_user_account(&$user, $openid_url, $logout = false) {
     if (isguestuser($user) || is_siteadmin($user->id)) {
         logout_tmpuser_error('auth_openid_cannot_change_user', null, $logout);
     }
-    
+
     $config = get_config('auth/openid');
     $allow_change = ($config->auth_openid_allow_account_change=='true');
     $user = get_complete_user_data('id', $user->id);
-    
+
     if (empty($user)) {
         logout_tmpuser_error('auth_openid_not_logged_in', null, $logout);
         return false;
     }
-    
+
     if (!$allow_change) {
         logout_tmpuser_error('auth_openid_cannot_change_accounts', null, $logout);
         return false;
     }
-    
+
     if (openid_already_exists($openid_url)) {
         $sparam = new stdClass;
         $sparam->url = $openid_url;
         logout_tmpuser_error('auth_openid_url_exists', $sparam, $logout);
         return false;
     }
- 
+
     if ($user->auth != 'openid') {
         $user->auth = 'openid';
 
@@ -408,17 +408,17 @@ function openid_append_url($user, $openid_url) {
         logout_tmpuser_error('auth_openid_url_exists', $sparam);
         return false;
     }
-    
+
     if ($user->auth == 'openid') {
-        $record = new object();
+        $record = new StdClass();
         $record->userid = $user->id;
         $record->url = $openid_url;
-        
+
         if ($DB->insert_record('openid_urls', $record) !== false) {
             return true;
         }
     }
-    
+
     return false;
 }
 
